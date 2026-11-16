@@ -1,18 +1,24 @@
-name: Rakit APK (fork)
+name: Rakit & Rilis APK
 
+# Proyek build berdiri sendiri (bukan fork): kode + workflow + keystore tetap.
+# Rilis selalu ke tag TETAP `apk-terbaru`, jadi URL unduhan tidak berubah tiap build.
 on:
   push:
     branches: [main]
   workflow_dispatch:
     inputs:
       jenis:
-        description: "debug atau release (release = tanda tangan keystore tetap)"
+        description: "release (bertanda tangan) atau debug"
         type: choice
         options: [release, debug]
         default: release
+      rilis:
+        description: "Terbitkan juga ke GitHub Release (tag apk-terbaru)"
+        type: boolean
+        default: true
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   rakit:
@@ -20,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # versi diturunkan dari tag
+          fetch-depth: 0
 
       - uses: actions/setup-java@v4
         with:
@@ -31,25 +37,16 @@ jobs:
         with:
           gradle-version: "9.3.1"
 
-      - name: Cek Android SDK (jangan gagal kalau paket tak ada di repo)
+      - name: Cek Android SDK
         run: |
           SDK="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
-          echo "SDK: $SDK"
           SDKMGR="$(ls "$SDK"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | head -1)"
           [ -n "$SDKMGR" ] || SDKMGR="$(command -v sdkmanager)"
-          echo "== paket yang sudah ada:"
-          "$SDKMGR" --list_installed 2>/dev/null | sed -n '1,25p' || true
-          # SDK 37 pre-release tidak selalu ada di channel stable: coba pasang, tapi
-          # JANGAN gagalkan job — runner biasanya sudah membawa platform-nya.
+          "$SDKMGR" --list_installed 2>/dev/null | sed -n '1,20p' || true
           for p in "platform-tools" "platforms;android-37" "build-tools;37.0.0"; do
-            if "$SDKMGR" --install "$p" > /dev/null 2>&1; then
-              echo "terpasang: $p"
-            else
-              echo "dilewati (tidak tersedia di channel stable): $p"
-            fi
+            if "$SDKMGR" --install "$p" > /dev/null 2>&1; then echo "terpasang: $p"; else echo "dilewati: $p"; fi
           done
           yes | "$SDKMGR" --licenses > /dev/null 2>&1 || true
-          echo "== selesai menyiapkan SDK"
 
       - name: Siapkan keystore tetap
         if: ${{ (github.event.inputs.jenis || 'release') == 'release' }}
@@ -59,8 +56,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
-            echo "::error::Secret keystore belum dipasang (KEYSTORE_BASE64 / KEYSTORE_PASSWORD)."
-            exit 1
+            echo "::error::Secret keystore belum dipasang."; exit 1
           fi
           echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
           ALIAS="${KEY_ALIAS:-fuwanime}"
@@ -68,7 +64,6 @@ jobs:
             ALIAS=$(keytool -list -keystore "$RUNNER_TEMP/release.jks" -storepass "$KEYSTORE_PASSWORD" 2>/dev/null \
               | awk -F, '/PrivateKeyEntry/ { gsub(/^[[:space:]]+|[[:space:]]+$/, "", $1); print $1; exit }')
           fi
-          echo "alias dipakai: $ALIAS"
           echo "KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
           echo "KEY_ALIAS=$ALIAS" >> "$GITHUB_ENV"
 
@@ -77,22 +72,20 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           chmod +x ./gradlew
-          JENIS="${{ github.event.inputs.jenis || 'release' }}"
-          if [ "$JENIS" = "release" ]; then
-            ./gradlew :app:assembleRelease --no-daemon --stacktrace
-          else
+          if [ "${{ github.event.inputs.jenis || 'release' }}" = "debug" ]; then
             ./gradlew :app:assembleDebug --no-daemon --stacktrace
+          else
+            ./gradlew :app:assembleRelease --no-daemon --stacktrace
           fi
 
-      - name: Kumpulkan APK + cetak sidik jari tanda tangan
+      - name: Kumpulkan APK + cetak sidik jari
         run: |
           mkdir -p keluaran
           find app/build/outputs/apk -name "*.apk" -exec cp {} keluaran/ \;
           ls -l keluaran/
           BT=$(ls -d "${ANDROID_HOME:-$ANDROID_SDK_ROOT}"/build-tools/*/ 2>/dev/null | sort -V | tail -1)
           for f in keluaran/*.apk; do
-            echo "== $f"
-            "$BT/apksigner" verify --print-certs "$f" | sed -n '1,6p'
+            echo "== $f"; "$BT/apksigner" verify --print-certs "$f" | sed -n '1,4p'
           done
 
       - name: Unggah artifact
@@ -101,3 +94,22 @@ jobs:
           name: fuwastream-apk
           path: keluaran/*.apk
           if-no-files-found: error
+
+      - name: Terbitkan ke tag tetap (apk-terbaru)
+        if: ${{ (github.event.inputs.rilis == null || github.event.inputs.rilis == 'true') && (github.event.inputs.jenis || 'release') == 'release' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VER=$(grep -oP 'versionName = System.getenv\("VERSION_NAME"\) \?: "\K[^"]+' app/build.gradle.kts || echo "unknown")
+          {
+            echo "**Versi sumber:** \`$VER\` · commit \`${GITHUB_SHA:0:7}\` · $(date -u '+%d %b %Y %H:%M UTC')"
+            echo
+            echo "**APK di aset ini (bertanda tangan keystore tetap):**"
+            for f in keluaran/*.apk; do echo "- \`$(basename "$f")\` — $(du -h "$f" | cut -f1)"; done
+            echo
+            echo "**Perubahan terakhir:**"
+            git log -n 10 --pretty=format:"- %s"
+          } > catatan-rilis.md
+          gh release edit apk-terbaru --title "FuwaStream $VER" --notes-file catatan-rilis.md \
+            || gh release create apk-terbaru --title "FuwaStream $VER" --notes-file catatan-rilis.md --target main
+          gh release upload apk-terbaru keluaran/*.apk --clobber
