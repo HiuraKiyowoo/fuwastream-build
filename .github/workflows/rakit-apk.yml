@@ -67,11 +67,25 @@ jobs:
           echo "KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
           echo "KEY_ALIAS=$ALIAS" >> "$GITHUB_ENV"
 
+      - name: Tentukan versi dari tag
+        run: |
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo v0.0.0)
+          V="${TAG#v}"
+          IFS=. read -r MA MI PA <<< "$V"
+          CODE=$(( 10#${MA:-0} * 10000 + 10#${MI:-0} * 100 + 10#${PA:-0} ))
+          echo "versi: $V (code $CODE) dari tag $TAG"
+          {
+            echo "VERSION_NAME=$V"
+            echo "VERSION_CODE=$CODE"
+            echo "UPDATE_REPO=HiuraKiyowoo/fuwastream-build"
+          } >> "$GITHUB_ENV"
+
       - name: Rakit APK
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           chmod +x ./gradlew
+          echo "VERSION_NAME=$VERSION_NAME VERSION_CODE=$VERSION_CODE UPDATE_REPO=$UPDATE_REPO"
           if [ "${{ github.event.inputs.jenis || 'release' }}" = "debug" ]; then
             ./gradlew :app:assembleDebug --no-daemon --stacktrace
           else
@@ -100,9 +114,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VER=$(grep -oP 'versionName = System.getenv\("VERSION_NAME"\) \?: "\K[^"]+' app/build.gradle.kts || echo "unknown")
+          VER="${VERSION_NAME:-unknown}"
           {
-            echo "**Versi sumber:** \`$VER\` · commit \`${GITHUB_SHA:0:7}\` · $(date -u '+%d %b %Y %H:%M UTC')"
+            echo "**Versi:** \`$VER\` · commit \`${GITHUB_SHA:0:7}\` · $(date -u '+%d %b %Y %H:%M UTC')"
             echo
             echo "**APK di aset ini (bertanda tangan keystore tetap):**"
             for f in keluaran/*.apk; do echo "- \`$(basename "$f")\` — $(du -h "$f" | cut -f1)"; done
