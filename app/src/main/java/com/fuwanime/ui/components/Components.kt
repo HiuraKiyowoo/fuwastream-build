@@ -199,7 +199,7 @@ fun PosterCard(
     Column(
         (if (width != null) modifier.width(width) else modifier)
             .pressScale(interaction)
-            .clip(MaterialTheme.shapes.medium)
+            .clip(ListCardShape)
             .combinedClickable(
                 interactionSource = interaction,
                 indication = LocalIndication.current,
@@ -217,8 +217,8 @@ fun PosterCard(
             Modifier
                 .fillMaxWidth()
                 .aspectRatio(2f / 3f)
-                .clip(MaterialTheme.shapes.medium)
-                .then(if (marked) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.medium) else Modifier),
+                .clip(ListCardShape)
+                .then(if (marked) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, ListCardShape) else Modifier),
         ) {
             // Only the image is shared. Badges render above shared elements, so while a transition is active the
             // image (drawn in the transition overlay) never covers them.
@@ -226,7 +226,7 @@ fun PosterCard(
                 anime.poster,
                 // Clip after the shared key so the flying copy keeps its rounded corners.
                 // Dim outside the shared element so the flying copy stays at full brightness.
-                Modifier.fillMaxSize().alpha(if (marked) 0.55f else 1f).sharedKey(poster).clip(MaterialTheme.shapes.medium),
+                Modifier.fillMaxSize().alpha(if (marked) 0.55f else 1f).sharedKey(poster).clip(ListCardShape),
                 null,
             )
             val cornerBadge = Modifier.align(Alignment.TopStart).aboveSharedElements().revealWhenLanded(poster).padding(7.dp)
@@ -294,6 +294,12 @@ fun PosterCard(
 
 /** Near-black used for scrims and pills drawn on top of artwork. */
 val ImageScrim = Color(0xFF0B0A0F)
+
+/**
+ * Corner radius for poster cards in anime lists. Deliberately smaller than Material's medium (16dp):
+ * dense grids read better with tighter corners, and the poster artwork stays the visual focus.
+ */
+val ListCardShape = RoundedCornerShape(8.dp)
 
 @Composable
 fun NewBadge(modifier: Modifier = Modifier) {

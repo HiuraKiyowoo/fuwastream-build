@@ -97,7 +97,7 @@ fun dedupeGenreNames(names: Iterable<String>): List<String> {
     return out
 }
 
-/** Union of genres across anime and manga sources used by FuwaStream (deduped). */
+/** Union of genres across anime and manga sources used by Kahoon (deduped). */
 fun mangaGenresFromAllSources(): List<String> = dedupeGenreNames(
     listOf(
         // Anime (general + mature)

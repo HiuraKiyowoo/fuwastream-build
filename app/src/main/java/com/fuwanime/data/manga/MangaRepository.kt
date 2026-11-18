@@ -218,7 +218,7 @@ class MangaRepository(
         return emptyList()
     }
 
-    /** Aggregated genre list from all anime/manga sources used by FuwaStream (deduped, cleaned). */
+    /** Aggregated genre list from all anime/manga sources used by Kahoon (deduped, cleaned). */
     suspend fun tags(): List<MangaTag> = mangaGenresFromAllSources().map { name -> MangaTag(id = name, name = name, group = "genre") }
 
     private fun notFound() = UiTextException(UiText(R.string.manga_error_not_found))

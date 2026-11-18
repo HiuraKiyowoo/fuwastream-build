@@ -48,7 +48,7 @@ fun AgeGateScreen(onConfirm: () -> Unit, onExit: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                "FuwaStream",
+                "Kahoon",
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center,

@@ -40,7 +40,7 @@ import com.fuwanime.util.legalLocale
  */
 object LegalText {
 
-    const val DEVELOPER_NAME = "FuwaStream Community (YuzakiNetwork)"
+    const val DEVELOPER_NAME = "Kahoon Community (YuzakiNetwork)"
     const val DEVELOPER_EMAIL = "fuwanimereal@gmail.com"
     const val DEVELOPER_WEB = "https://github.com/fuwanime/fuwastream"
     const val COLLABORATOR_NAME = "Andra"

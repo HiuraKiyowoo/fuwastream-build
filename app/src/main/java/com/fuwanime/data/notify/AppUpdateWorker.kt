@@ -47,7 +47,7 @@ class AppUpdateWorker(context: Context, params: WorkerParameters) : CoroutineWor
         val notified = container.settingsStore.updateNotifiedTag()
         if (release.tagName == dismissed || release.tagName == notified) return Result.success()
 
-        val title = release.name?.takeIf { it.isNotBlank() } ?: "FuwaStream ${release.tagName.removePrefix("v")}"
+        val title = release.name?.takeIf { it.isNotBlank() } ?: "Kahoon ${release.tagName.removePrefix("v")}"
         val posted = AppUpdateNotifier(applicationContext).notifyUpdate(
             tag = release.tagName,
             title = title,

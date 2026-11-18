@@ -11,7 +11,7 @@ import android.provider.Settings
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 
-/** Why Android may drop FuwaStream notifications, ordered from the setting the user should fix first. */
+/** Why Android may drop Kahoon notifications, ordered from the setting the user should fix first. */
 enum class NotificationAccess {
     GRANTED,
     PERMISSION_MISSING,
@@ -44,7 +44,7 @@ fun notificationAccess(context: Context): NotificationAccess {
     return NotificationAccess.GRANTED
 }
 
-/** Opens the system notification settings for FuwaStream; falls back to the app details page. */
+/** Opens the system notification settings for Kahoon; falls back to the app details page. */
 fun openNotificationSettings(context: Context) {
     val appDetails = Intent(
         Settings.ACTION_APPLICATION_DETAILS_SETTINGS,

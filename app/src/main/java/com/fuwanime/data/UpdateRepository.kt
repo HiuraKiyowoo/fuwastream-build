@@ -97,7 +97,7 @@ class UpdateRepository(private val settingsStore: SettingsStore) {
 
         UpdateInfo(
             tag = release.tagName,
-            title = release.name?.takeIf { it.isNotBlank() } ?: "FuwaStream ${release.tagName.removePrefix("v")}",
+            title = release.name?.takeIf { it.isNotBlank() } ?: "Kahoon ${release.tagName.removePrefix("v")}",
             notes = release.body.orEmpty().trim(),
             apkUrl = selectApkUrl(release.assets),
             pageUrl = release.htmlUrl,
