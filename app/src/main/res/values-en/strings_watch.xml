@@ -93,7 +93,7 @@
     <string name="watch_cast_main">Main</string>
     <string name="watch_cast_supporting">Supporting</string>
     <string name="watch_read_manga">Read the manga</string>
-    <string name="watch_manga_not_found">The manga isn\'t available in FuwaStream yet</string>
+    <string name="watch_manga_not_found">The manga isn\'t available in Kahoon yet</string>
     <string name="watch_open_external">Open in another player</string>
     <string name="watch_no_external_player">No video player app found</string>
     <string name="watch_now_playing">Playing</string>

@@ -28,7 +28,7 @@ android {
   lint { fatal += "NewApi" }
 
   defaultConfig {
-    applicationId = "com.fuwanime.app"
+    applicationId = System.getenv("APPLICATION_ID") ?: "com.kahoon.app"
     minSdk = 24
     targetSdk = 37
     // F-Droid & CI pass VERSION_CODE/VERSION_NAME as env vars. Fallback to fixed

@@ -103,6 +103,11 @@ jobs:
           for f in keluaran/*.apk; do
             echo "== $f"; "$BT/apksigner" verify --print-certs "$f" | sed -n '1,4p'
           done
+          # Bukti identitas: applicationId + label yang benar-benar tertanam di APK
+          A="${BT}aapt"
+          for f in keluaran/*.apk; do
+            "$A" dump badging "$f" 2>/dev/null | grep -E "^package:|application-label:" | head -2
+          done
 
       - name: Unggah artifact
         uses: actions/upload-artifact@v4
