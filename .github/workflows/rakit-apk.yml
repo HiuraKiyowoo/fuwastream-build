@@ -131,6 +131,6 @@ jobs:
             echo "**Perubahan terakhir:**"
             git log -n 10 --pretty=format:"- %s"
           } > catatan-rilis.md
-          gh release edit apk-terbaru --title "FuwaStream $VER" --notes-file catatan-rilis.md \
-            || gh release create apk-terbaru --title "FuwaStream $VER" --notes-file catatan-rilis.md --target main
+          gh release edit apk-terbaru --title "Kahoon $VER" --notes-file catatan-rilis.md \
+            || gh release create apk-terbaru --title "Kahoon $VER" --notes-file catatan-rilis.md --target main
           gh release upload apk-terbaru keluaran/*.apk --clobber
