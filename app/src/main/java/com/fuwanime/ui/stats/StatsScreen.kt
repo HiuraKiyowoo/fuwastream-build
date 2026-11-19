@@ -360,8 +360,8 @@ private fun RecapCard(stats: WatchStats, monthYear: String) {
     ) {
         Text(
             buildAnnotatedString {
-                withStyle(SpanStyle(color = RecapPrimary)) { append("fuwa") }
-                withStyle(SpanStyle(color = RecapText)) { append("stream") }
+                withStyle(SpanStyle(color = RecapPrimary)) { append("Ka") }
+                withStyle(SpanStyle(color = RecapText)) { append("hoon") }
             },
             fontFamily = PlusJakarta,
             fontWeight = FontWeight.ExtraBold,

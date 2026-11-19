@@ -626,8 +626,10 @@ private fun HomeTopBar(solid: Boolean, syncing: Boolean, onSearch: () -> Unit, o
 fun Wordmark(onDark: Boolean = false) {
     val style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold, fontSize = 21.sp, letterSpacing = (-0.03).em)
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text("fuwa", style = style, color = MaterialTheme.colorScheme.primary)
-        Text("stream", style = style, color = if (onDark) Color.White else MaterialTheme.colorScheme.onSurface)
+        // Nama aplikasi. Dulu dua potong "fuwa"+"stream" (warna aksen + warna teks); sekarang satu kata
+        // dengan potongan pertama beraksen supaya gaya dua-warna itu tetap terasa.
+        Text("Ka", style = style, color = MaterialTheme.colorScheme.primary)
+        Text("hoon", style = style, color = if (onDark) Color.White else MaterialTheme.colorScheme.onSurface)
     }
 }
 
