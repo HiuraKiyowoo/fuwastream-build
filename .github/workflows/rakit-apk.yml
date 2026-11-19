@@ -134,3 +134,12 @@ jobs:
           gh release edit apk-terbaru --title "Kahoon $VER" --notes-file catatan-rilis.md \
             || gh release create apk-terbaru --title "Kahoon $VER" --notes-file catatan-rilis.md --target main
           gh release upload apk-terbaru keluaran/*.apk --clobber
+
+          # Cermin ke tag semver `v<versi>`: aplikasi memeriksa /releases/latest dan membandingkan
+          # tag-nya sebagai vX.Y.Z (`isNewerRelease`). Tag `apk-terbaru` TIDAK dikenali pembanding itu,
+          # jadi tanpa langkah ini banner pembaruan di beranda tidak pernah muncul.
+          TAGV="v$VER"
+          gh release view "$TAGV" >/dev/null 2>&1 \
+            && gh release edit "$TAGV" --title "Kahoon $VER" --notes-file catatan-rilis.md \
+            || gh release create "$TAGV" --title "Kahoon $VER" --notes-file catatan-rilis.md || true
+          gh release upload "$TAGV" keluaran/*.apk --clobber
