@@ -61,6 +61,4 @@
     <string name="browse_home_hot_subtitle">大家都在看的内容</string>
     <string name="browse_home_new">新上架</string>
     <string name="browse_home_new_subtitle">最新收录的作品</string>
-    <string name="browse_home_for_you">为你推荐</string>
-    <string name="browse_home_for_you_subtitle">根据你的收藏与观看记录</string>
 </resources>

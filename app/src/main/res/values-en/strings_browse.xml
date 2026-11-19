@@ -61,6 +61,4 @@
     <string name="browse_home_hot_subtitle">What everyone is watching right now</string>
     <string name="browse_home_new">New Titles</string>
     <string name="browse_home_new_subtitle">Just added to the catalogue</string>
-    <string name="browse_home_for_you">For You</string>
-    <string name="browse_home_for_you_subtitle">Based on your collection and watching</string>
 </resources>

@@ -353,17 +353,14 @@ private fun HomeScreen(
                 }
             }
 
-            // One slot, two sources: personalised picks once the collection says something, else new titles.
-            val slotPicks = feed.forYou.ifEmpty { feed.fresh }
-            val personalised = feed.forYou.isNotEmpty()
-            if (feed.loading || slotPicks.isNotEmpty()) {
+            if (feed.loading || feed.fresh.isNotEmpty()) {
                 item(key = "new") {
                     Section(
-                        stringResource(if (personalised) R.string.browse_home_for_you else R.string.browse_home_new),
-                        subtitle = stringResource(if (personalised) R.string.browse_home_for_you_subtitle else R.string.browse_home_new_subtitle),
+                        stringResource(R.string.browse_home_new),
+                        subtitle = stringResource(R.string.browse_home_new_subtitle),
                     ) {
                         val newRes = LocalContext.current.resources
-                        PosterRow(slotPicks, feed.loading, { onAnimeClick(it, "home-new") }, origin = "home-new", caption = { a ->
+                        PosterRow(feed.fresh, feed.loading, { onAnimeClick(it, "home-new") }, origin = "home-new", caption = { a ->
                             listOf(typeLabel(newRes, a.type), a.year)
                                 .filter { it.isNotBlank() }
                                 .joinToString(" · ")

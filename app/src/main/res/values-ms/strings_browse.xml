@@ -61,6 +61,4 @@
     <string name="browse_home_hot_subtitle">Pilihan yang sedang ramai ditonton</string>
     <string name="browse_home_new">Judul Baharu</string>
     <string name="browse_home_new_subtitle">Baru ditambah ke katalog</string>
-    <string name="browse_home_for_you">Untuk Anda</string>
-    <string name="browse_home_for_you_subtitle">Berdasarkan koleksi dan tontonan anda</string>
 </resources>
