@@ -506,7 +506,9 @@ fun FuwaNavHost(initialTarget: LaunchTarget? = null, onInitialTargetConsumed: ()
                     player = container.playbackHolder.player,
                     animeTitle = mini.animeTitle,
                     episodeLabel = mini.episodeLabel,
-                    bottomPadding = navPad,
+                    // Detail and friends have no tab bar, so navPad is 0 there: keep the system nav inset
+                    // or the bar sits under the gesture area.
+                    bottomPadding = maxOf(navPad, systemNav),
                     onExpand = { mini.route?.let { nav.navigate(it) } },
                     onClose = { container.playbackHolder.stop(); mini.hide() },
                 )

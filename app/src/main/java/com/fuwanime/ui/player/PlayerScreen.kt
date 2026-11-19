@@ -415,6 +415,13 @@ fun PlayerRoute(
         // the media item would seek back to the saved position and restart the stream. Keep it untouched.
         val loadedUri = player.currentMediaItem?.localConfiguration?.uri?.toString()
         if (loadedUri == source.url && player.playbackState != Player.STATE_IDLE) {
+            // Seed from the live player at once: waiting for the first 250 ms poll left the seek bar and
+            // time label showing a stale/unknown duration (thumb pinned to the end) for a frame or two.
+            playback.position = player.currentPosition.coerceAtLeast(0)
+            playback.buffered = player.bufferedPosition.coerceAtLeast(0)
+            playback.duration = player.duration.takeIf { it != C.TIME_UNSET && it > 0 } ?: 0L
+            playback.isPlaying = player.isPlaying
+            playback.buffering = player.playbackState == Player.STATE_BUFFERING
             playback.firstFrame = true
             return@LaunchedEffect
         }
@@ -1131,6 +1138,7 @@ private fun Controls(
             Modifier.fillMaxWidth().align(Alignment.BottomCenter)
                 .then(if (fullscreen) Modifier.padding(horizontal = 32.dp, vertical = 12.dp) else Modifier.padding(horizontal = 12.dp)),
         ) {
+            val durationKnown = playback.duration > 0
             val duration = playback.duration.coerceAtLeast(1)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 val shown = scrubbing?.let { (it * duration).toLong() } ?: playback.position
@@ -1149,7 +1157,7 @@ private fun Controls(
             }
             Box(Modifier.fillMaxWidth().height(24.dp), contentAlignment = Alignment.Center) {
                 LinearProgressIndicator(
-                    progress = { playback.buffered.toFloat() / duration },
+                    progress = { if (durationKnown) (playback.buffered.toFloat() / duration).coerceIn(0f, 1f) else 0f },
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp).height(3.dp).clip(CircleShape),
                     color = Color.White.copy(alpha = 0.35f),
                     trackColor = Color.White.copy(alpha = 0.15f),
@@ -1167,7 +1175,7 @@ private fun Controls(
                     }
                 }
                 Slider(
-                    value = scrubbing ?: (playback.position.toFloat() / duration).coerceIn(0f, 1f),
+                    value = scrubbing ?: (if (durationKnown) (playback.position.toFloat() / duration).coerceIn(0f, 1f) else 0f),
                     onValueChange = {
                         scrubbing = it
                         onInteract()
