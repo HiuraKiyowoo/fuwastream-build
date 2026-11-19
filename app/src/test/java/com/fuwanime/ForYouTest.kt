@@ -36,8 +36,10 @@ class ForYouTest {
         val out = pickForYou(personal, general, taste, exclude = emptySet(), limit = 6)
         // personal quota = limit - 3 = 3, so the rest must come from the general pool
         assertEquals(6, out.size)
-        assertTrue(out.take(3).all { it.id.startsWith("p") })
-        assertTrue(out.drop(3).all { it.id.startsWith("g") })
+        // p3 is Comedy only, so it carries no signal for an Action/Ninja taste and must not be passed off
+        // as personal: 2 personal picks, then general ones fill the row.
+        assertEquals(listOf("p1", "p2"), out.take(2).map { it.id })
+        assertTrue(out.drop(2).all { it.id.startsWith("g") })
         assertEquals("p1", out.first().id) // strongest genre match first
     }
 

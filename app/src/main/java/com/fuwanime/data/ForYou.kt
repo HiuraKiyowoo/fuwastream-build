@@ -55,6 +55,12 @@ fun pickForYou(
         .filter { taste.isEmpty() || genreScore(it, taste) > 0 }
         .sortedWith(compareByDescending<Anime> { genreScore(it, taste) }.thenByDescending { it.views })
         .toList()
+    // Unfiltered copy for the last resort: exclusions must not be able to empty the row.
+    val personalFallback = personal.asSequence()
+        .filter { it.id.isNotBlank() }
+        .distinctBy { it.id }
+        .sortedWith(compareByDescending<Anime> { genreScore(it, taste) }.thenByDescending { it.views })
+        .toList()
     val rankedGeneral = general.asSequence()
         .filter { it.id.isNotBlank() }
         .distinctBy { it.id }
@@ -75,7 +81,7 @@ fun pickForYou(
         if (out.size >= limit) break
         add(anime)
     }
-    for (anime in rankedPersonal) {
+    for (anime in personalFallback) {
         if (out.size >= limit) break
         add(anime)
     }
