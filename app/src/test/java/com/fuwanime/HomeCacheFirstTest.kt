@@ -101,7 +101,8 @@ class HomeCacheFirstTest {
         val cache = FakeAnimeApi()
         HomeFeedLoader(AnimeRepository(net, cache), Day.MONDAY).fetch(cacheOnly = true)
         assertTrue(net.calls.isEmpty())
-        assertEquals(1 + Day.entries.size + 1, cache.calls.size)
+        // popular + hot + every day's schedule + latest
+        assertEquals(2 + Day.entries.size + 1, cache.calls.size)
     }
 
     @Test fun reduce_networkLoadServedFromCacheStaysStale() {
