@@ -30,6 +30,20 @@ class HomeCacheFirstTest {
     private fun failure(e: Throwable) =
         FeedResult(popular = null, today = emptyList(), season = emptyList(), latest = null, error = e)
 
+    @Test fun reduce_hotSurvivesAFailedHotCall() {
+        val before = HomeFeed(hot = listOf(a1))
+        val after = before.reduce(result(listOf(a2)), fromCache = false, online = true)!!
+        assertEquals(listOf(a1), after.hot)
+    }
+
+    @Test fun reduce_freshHotReplacesTheOldRow() {
+        val before = HomeFeed(hot = listOf(a1))
+        val fresh = FeedResult(popular = listOf(a2), today = emptyList(), season = emptyList(),
+            latest = emptyList(), hot = listOf(a2), error = null)
+        val after = before.reduce(fresh, fromCache = false, online = true)!!
+        assertEquals(listOf(a2), after.hot)
+    }
+
     @Test fun reduce_cacheShownWhileSyncing() {
         val f = HomeFeed().reduce(result(listOf(a1)), fromCache = true, online = true)!!
         assertFalse(f.loading)
