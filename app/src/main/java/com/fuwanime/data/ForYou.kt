@@ -76,14 +76,17 @@ fun pickForYou(
         if (out.size >= limit) break
         if (anime.id !in exclude) add(anime)
     }
-    // Last resort: an empty row is worse than a repeat, so allow excluded/unscored titles back in.
-    for (anime in rankedGeneral) {
-        if (out.size >= limit) break
-        add(anime)
-    }
-    for (anime in personalFallback) {
-        if (out.size >= limit) break
-        add(anime)
+    // Last resort ONLY when nothing at all survived the exclusions: an empty row is worse than a repeat,
+    // but a merely short row must not resurrect titles the user already saved or watched.
+    if (out.isEmpty()) {
+        for (anime in rankedGeneral) {
+            if (out.size >= limit) break
+            add(anime)
+        }
+        for (anime in personalFallback) {
+            if (out.size >= limit) break
+            add(anime)
+        }
     }
     return out
 }
