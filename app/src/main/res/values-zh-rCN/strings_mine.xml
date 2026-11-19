@@ -200,4 +200,6 @@
     <string name="download_target_remember">始终使用此选项</string>
     <string name="mine_download_location_ask">每次询问</string>
     <string name="mine_download_ask">每次下载时询问</string>
+    <string name="mine_mini_player">悬浮迷你播放器</string>
+    <string name="mine_mini_player_desc">离开播放器时在小栏中继续观看。关闭后离开即停止。</string>
 </resources>

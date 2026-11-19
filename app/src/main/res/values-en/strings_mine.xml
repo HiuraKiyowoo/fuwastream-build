@@ -206,4 +206,6 @@
     <string name="download_target_remember">Always use this choice</string>
     <string name="mine_download_location_ask">Always ask</string>
     <string name="mine_download_ask">Ask every time I download</string>
+    <string name="mine_mini_player">Floating mini player</string>
+    <string name="mine_mini_player_desc">Keep watching in a small bar when you leave the player. Turn off to stop on exit.</string>
 </resources>

@@ -65,6 +65,7 @@ import androidx.compose.material.icons.rounded.ManageSearch
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Headphones
 import androidx.compose.material.icons.rounded.PictureInPictureAlt
+import androidx.compose.material.icons.rounded.SmartDisplay
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.FastForward
 import androidx.compose.material.icons.rounded.NotificationsActive
@@ -367,6 +368,17 @@ fun SettingsRoute(onBack: () -> Unit, onOpenLegal: (String) -> Unit, onOpenProfi
             item {
                 SwitchRow(Icons.Rounded.PictureInPictureAlt, stringResource(R.string.mine_auto_pip), stringResource(R.string.mine_auto_pip_desc), s.autoPip) {
                     vm.update { setAutoPip(it) }
+                }
+            }
+            item {
+                SwitchRow(Icons.Rounded.SmartDisplay, stringResource(R.string.mine_mini_player), stringResource(R.string.mine_mini_player_desc), s.miniPlayer) {
+                    vm.update { setMiniPlayer(it) }
+                    // Turning it off also dismisses a bar that is already up, instead of leaving it running.
+                    if (!it) {
+                        val c = (context.applicationContext as com.fuwanime.FuwaApp).container
+                        c.playbackHolder.stop()
+                        c.miniPlayer.hide()
+                    }
                 }
             }
             item {

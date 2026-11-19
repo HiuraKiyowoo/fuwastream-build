@@ -32,6 +32,8 @@ data class AppSettings(
     val preferredQuality: Int = 720,
     val autoPlayNext: Boolean = true,
     val autoPip: Boolean = true,
+    /** Keep streaming in the in-app floating bar when leaving the player. On by default. */
+    val miniPlayer: Boolean = true,
     val doubleTapSeekSeconds: Int = 10,
     /** Downloads default lower than streaming to save storage. */
     val downloadQuality: Int = 480,
@@ -68,6 +70,7 @@ internal object Keys {
     val preferredQuality = intPreferencesKey("preferred_quality")
     val autoPlayNext = booleanPreferencesKey("auto_play_next")
     val autoPip = booleanPreferencesKey("auto_pip")
+    val miniPlayer = booleanPreferencesKey("mini_player")
     val doubleTapSeekSeconds = intPreferencesKey("double_tap_seek_seconds")
     val downloadQuality = intPreferencesKey("download_quality")
     val downloadWifiOnly = booleanPreferencesKey("download_wifi_only")
@@ -190,6 +193,7 @@ class SettingsStore(private val context: Context) {
     suspend fun setPreferredQuality(height: Int) = context.dataStore.edit { it[Keys.preferredQuality] = height }
     suspend fun setAutoPlayNext(enabled: Boolean) = context.dataStore.edit { it[Keys.autoPlayNext] = enabled }
     suspend fun setAutoPip(enabled: Boolean) = context.dataStore.edit { it[Keys.autoPip] = enabled }
+    suspend fun setMiniPlayer(enabled: Boolean) = context.dataStore.edit { it[Keys.miniPlayer] = enabled }
     suspend fun setDoubleTapSeekSeconds(seconds: Int) = context.dataStore.edit { it[Keys.doubleTapSeekSeconds] = seconds }
     suspend fun setDownloadQuality(height: Int) = context.dataStore.edit { it[Keys.downloadQuality] = height }
     suspend fun setDownloadWifiOnly(enabled: Boolean) = context.dataStore.edit { it[Keys.downloadWifiOnly] = enabled }
@@ -308,6 +312,7 @@ internal fun Preferences.toSettings(): AppSettings {
         preferredQuality = this[Keys.preferredQuality] ?: d.preferredQuality,
         autoPlayNext = this[Keys.autoPlayNext] ?: d.autoPlayNext,
         autoPip = this[Keys.autoPip] ?: d.autoPip,
+        miniPlayer = this[Keys.miniPlayer] ?: d.miniPlayer,
         doubleTapSeekSeconds = this[Keys.doubleTapSeekSeconds] ?: d.doubleTapSeekSeconds,
         downloadQuality = this[Keys.downloadQuality] ?: d.downloadQuality,
         downloadWifiOnly = this[Keys.downloadWifiOnly] ?: d.downloadWifiOnly,

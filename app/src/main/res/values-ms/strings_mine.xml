@@ -200,4 +200,6 @@
     <string name="download_target_remember">Sentiasa guna pilihan ini</string>
     <string name="mine_download_location_ask">Sentiasa tanya</string>
     <string name="mine_download_ask">Tanya setiap kali muat turun</string>
+    <string name="mine_mini_player">Pemain mini terapung</string>
+    <string name="mine_mini_player_desc">Terus menonton dalam bar kecil apabila keluar dari pemain. Matikan untuk berhenti semasa keluar.</string>
 </resources>

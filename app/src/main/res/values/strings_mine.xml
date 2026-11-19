@@ -200,4 +200,6 @@
     <string name="download_target_remember">Selalu pakai pilihan ini</string>
     <string name="mine_download_location_ask">Selalu tanya</string>
     <string name="mine_download_ask">Tanya setiap kali mengunduh</string>
+    <string name="mine_mini_player">Mini player mengambang</string>
+    <string name="mine_mini_player_desc">Lanjut menonton di bar kecil saat keluar dari pemutar. Matikan agar berhenti saat keluar.</string>
 </resources>
