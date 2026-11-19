@@ -305,7 +305,7 @@ fun PlayerRoute(
     val holder = remember(context) { (context.applicationContext as FuwaApp).container.playbackHolder }
     val mini = remember(context) { (context.applicationContext as FuwaApp).container.miniPlayer }
     // Returning from the mini window reuses the live player: no re-buffer, playback never stops.
-    val player = remember { holder.acquireOrReuse(vm.state.episode.id) }
+    val player = remember { holder.acquireOrReuse(vm.state.value.episode.id) }
     val initialEpisodeId = remember { state.episode.id }
     // The nav-arg thumbnail, which is what flew in; the stream may report a different URL for the same image.
     val initialThumbnail = remember { state.episode.thumbnail }
@@ -381,8 +381,8 @@ fun PlayerRoute(
             player.removeListener(listener)
             // Left while still playing -> keep streaming in the in-app mini window instead of releasing.
             // holder.player !== player means another episode already took over, so this one must go.
-            val ep = vm.state.episode
-            val anime = vm.state.anime
+            val ep = vm.state.value.episode
+            val anime = vm.state.value.anime
             val keepAlive = player.playWhenReady &&
                 player.playbackState != Player.STATE_ENDED &&
                 player.playbackState != Player.STATE_IDLE &&
