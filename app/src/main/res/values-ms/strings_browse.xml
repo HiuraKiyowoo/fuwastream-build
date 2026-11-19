@@ -57,4 +57,6 @@
     <string name="browse_schedule_continuing">Sambungan</string>
     <string name="browse_schedule_section">%1$s (%2$d)</string>
     <string name="source_kuramanime">Kuramanime</string>
+    <string name="browse_home_hot">Sedang Hangat</string>
+    <string name="browse_home_hot_subtitle">Pilihan yang sedang ramai ditonton</string>
 </resources>

@@ -45,6 +45,8 @@ data class HomeFeed(
     val thisSeason: List<Anime> = emptyList(),
     /** Titles with a freshly released episode, newest first. */
     val latest: List<LatestRelease> = emptyList(),
+    /** Editorial trending picks, rendered as landscape (16:9) cards. */
+    val hot: List<Anime> = emptyList(),
     val loading: Boolean = true,
     /** Pull-to-refresh in progress (its own indicator). */
     val refreshing: Boolean = false,

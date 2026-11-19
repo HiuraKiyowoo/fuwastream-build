@@ -32,6 +32,10 @@ interface AnimeApiService {
     @GET("data/home/list_new_episode")
     suspend fun latestEpisodes(@Query("limit") limit: Int = 20): ApiResponse<MovieListData>
 
+    /** Beranda aggregate (slider/hot/new/today); only `hot` is consumed today. */
+    @GET("data/home/list")
+    suspend fun homeList(): ApiResponse<HomeListData>
+
     /** All genres with the ids [exploreByGenre] expects. */
     @GET("3/2/explore/genre")
     suspend fun genres(): ApiResponse<GenreListData>

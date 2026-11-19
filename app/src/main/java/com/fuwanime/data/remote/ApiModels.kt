@@ -89,3 +89,9 @@ data class ServerDto(
     @Json(name = "name") val name: String? = null,
     @Json(name = "type") val type: String? = null,
 )
+
+/** Beranda aggregate (`data/home/list`); only `hot` is consumed. Every item ships poster + cover. */
+@JsonClass(generateAdapter = true)
+data class HomeListData(
+    @Json(name = "hot") val hot: List<AnimeDto>? = null,
+)

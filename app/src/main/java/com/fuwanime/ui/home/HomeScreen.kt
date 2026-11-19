@@ -1,6 +1,8 @@
 package com.fuwanime.ui.home
 
 import com.fuwanime.R
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import com.fuwanime.util.typeLabel
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -306,6 +308,17 @@ private fun HomeScreen(
                             origin = "home-collection",
                             caption = { a -> state.collectionLatest.firstOrNull { it.anime.id == a.id }?.episodeLabel },
                         )
+                    }
+                }
+            }
+
+            if (feed.hot.isNotEmpty()) {
+                item(key = "hot") {
+                    Section(
+                        stringResource(R.string.browse_home_hot),
+                        subtitle = stringResource(R.string.browse_home_hot_subtitle),
+                    ) {
+                        WideCardRow(feed.hot) { onAnimeClick(it, "home-hot") }
                     }
                 }
             }
@@ -645,6 +658,44 @@ private fun AmbientBackdrop(url: String, modifier: Modifier = Modifier) {
         contentScale = ContentScale.Crop,
         modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainerHigh).blur(36.dp, BlurredEdgeTreatment.Rectangle),
     )
+}
+
+/**
+ * Landscape row: the backend ships a second poster per title (`image_cover`, 16:9) next to the 2:3
+ * portrait one. Sections using this render the cover; poster rows keep the portrait asset.
+ */
+@Composable
+private fun WideCardRow(items: List<Anime>, onClick: (Anime) -> Unit) {
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        items(items, key = { it.id }) { anime ->
+            Box(
+                Modifier
+                    .width(272.dp)
+                    .aspectRatio(16f / 9f)
+                    .clip(MaterialTheme.shapes.medium)
+                    .clickable { onClick(anime) }
+                    .semantics(mergeDescendants = true) { contentDescription = anime.title },
+            ) {
+                NetImage(anime.cover.ifBlank { anime.poster }, Modifier.fillMaxSize(), null)
+                Box(
+                    Modifier.fillMaxSize().background(
+                        Brush.verticalGradient(0.45f to Color.Transparent, 1f to ImageScrim.copy(alpha = 0.82f)),
+                    ),
+                )
+                Text(
+                    anime.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = Color.White,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.align(Alignment.BottomStart).padding(10.dp),
+                )
+            }
+        }
+    }
 }
 
 @Composable

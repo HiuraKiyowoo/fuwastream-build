@@ -129,6 +129,11 @@ class AnimeRepository(
         if (mature()) merged else merged.filterNot { it.anime.hasMatureGenre() }
     }
 
+    /** Editorial trending picks; wide cards render [Anime.cover] (16:9), posters stay 2:3. */
+    suspend fun hotTitles(cacheOnly: Boolean = false): Result<List<Anime>> = io {
+        remember(visible((if (cacheOnly) cachedApi else api).homeList().data?.hot.orEmpty().map { it.toAnime() }))
+    }
+
     suspend fun schedule(day: String, cacheOnly: Boolean = false): Result<List<Anime>> = io {
         remember(visible((if (cacheOnly) cachedApi else api).schedule(day.lowercase()).data?.movie.orEmpty().map { it.toAnime() }))
     }
