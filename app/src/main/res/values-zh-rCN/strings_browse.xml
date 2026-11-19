@@ -59,4 +59,6 @@
     <string name="source_kuramanime">Kuramanime</string>
     <string name="browse_home_hot">热门精选</string>
     <string name="browse_home_hot_subtitle">大家都在看的内容</string>
+    <string name="browse_home_new">新上架</string>
+    <string name="browse_home_new_subtitle">最新收录的作品</string>
 </resources>

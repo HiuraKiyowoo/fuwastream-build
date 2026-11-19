@@ -353,6 +353,23 @@ private fun HomeScreen(
                 }
             }
 
+            if (feed.loading || feed.fresh.isNotEmpty()) {
+                item(key = "new") {
+                    Section(
+                        stringResource(R.string.browse_home_new),
+                        subtitle = stringResource(R.string.browse_home_new_subtitle),
+                    ) {
+                        val newRes = LocalContext.current.resources
+                        PosterRow(feed.fresh, feed.loading, { onAnimeClick(it, "home-new") }, origin = "home-new", caption = { a ->
+                            listOf(typeLabel(newRes, a.type), a.year)
+                                .filter { it.isNotBlank() }
+                                .joinToString(" · ")
+                                .ifBlank { null }
+                        })
+                    }
+                }
+            }
+
             if (feed.loading || feed.thisSeason.isNotEmpty()) {
                 item(key = "season") {
                     Section(stringResource(R.string.browse_home_airing), subtitle = stringResource(R.string.browse_home_airing_subtitle)) {

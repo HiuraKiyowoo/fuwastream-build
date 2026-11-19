@@ -29,6 +29,9 @@ enum class SortOrder(val apiValue: String, @StringRes val label: Int) {
  * (e.g. a poster tapped on Home) while the full payload loads.
  */
 /** [cachedApi] answers from the disk cache only (see ForceCache); it backs the cache-first read on Beranda. */
+/** Editorial picks from one `data/home/list` call: trending (`hot`) and newly added titles (`new`). */
+data class HomePicks(val hot: List<Anime>, val fresh: List<Anime>)
+
 class AnimeRepository(
     private val api: AnimeApiService,
     private val cachedApi: AnimeApiService = api,
@@ -130,8 +133,12 @@ class AnimeRepository(
     }
 
     /** Editorial trending picks; wide cards render [Anime.cover] (16:9), posters stay 2:3. */
-    suspend fun hotTitles(cacheOnly: Boolean = false): Result<List<Anime>> = io {
-        remember(visible((if (cacheOnly) cachedApi else api).homeList().data?.hot.orEmpty().map { it.toAnime() }))
+    suspend fun homePicks(cacheOnly: Boolean = false): Result<HomePicks> = io {
+        val data = (if (cacheOnly) cachedApi else api).homeList().data
+        val hot = visible(data?.hot.orEmpty().map { it.toAnime() })
+        val fresh = visible(data?.fresh.orEmpty().map { it.toAnime() })
+        remember(hot + fresh)
+        HomePicks(hot, fresh)
     }
 
     suspend fun schedule(day: String, cacheOnly: Boolean = false): Result<List<Anime>> = io {

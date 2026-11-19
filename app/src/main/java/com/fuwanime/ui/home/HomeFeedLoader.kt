@@ -20,6 +20,7 @@ data class FeedResult(
     val season: List<Anime>,
     val latest: List<LatestRelease>?,
     val hot: List<Anime>? = null,
+    val fresh: List<Anime>? = null,
     val error: Throwable?,
 ) {
     val hasData: Boolean get() = !popular.isNullOrEmpty() || season.isNotEmpty() || !latest.isNullOrEmpty()
@@ -30,7 +31,7 @@ class HomeFeedLoader(private val anime: AnimeRepository, private val today: Day)
     suspend fun fetch(cacheOnly: Boolean): FeedResult = coroutineScope {
         val popularJob = async { anime.explore(page = 0, sort = SortOrder.POPULAR, cacheOnly = cacheOnly) }
         val latestJob = async { anime.latestReleases(LATEST_LIMIT, cacheOnly = cacheOnly) }
-        val hotJob = async { anime.hotTitles(cacheOnly = cacheOnly) }
+        val picksJob = async { anime.homePicks(cacheOnly = cacheOnly) }
         // Every day's schedule together approximates "currently airing this season".
         val dayJobs = Day.entries.map { day -> day to async { anime.schedule(day.apiValue, cacheOnly = cacheOnly) } }
 
@@ -44,7 +45,8 @@ class HomeFeedLoader(private val anime: AnimeRepository, private val today: Day)
             today = days.first { it.first == today }.second.getOrDefault(emptyList()),
             season = season,
             latest = latestJob.await().getOrNull(),
-            hot = hotJob.await().getOrNull(),
+            hot = picksJob.await().getOrNull()?.hot,
+            fresh = picksJob.await().getOrNull()?.fresh,
             error = popular.exceptionOrNull()?.takeIf { season.isEmpty() },
         )
     }
@@ -73,6 +75,7 @@ fun HomeFeed.reduce(
         thisSeason = result.season,
         latest = result.latest.orEmpty(),
         hot = result.hot.orEmpty(),
+        fresh = result.fresh.orEmpty(),
         loading = false,
         syncing = true,
         stale = true,
@@ -83,6 +86,7 @@ fun HomeFeed.reduce(
         thisSeason = result.season,
         latest = result.latest ?: latest,
         hot = result.hot ?: hot,
+        fresh = result.fresh ?: fresh,
         loading = false,
         stale = servedFromCache,
     )

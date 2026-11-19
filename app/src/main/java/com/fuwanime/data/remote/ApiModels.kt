@@ -94,4 +94,5 @@ data class ServerDto(
 @JsonClass(generateAdapter = true)
 data class HomeListData(
     @Json(name = "hot") val hot: List<AnimeDto>? = null,
+    @Json(name = "new") val fresh: List<AnimeDto>? = null,
 )
