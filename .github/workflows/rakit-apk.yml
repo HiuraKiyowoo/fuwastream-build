@@ -79,10 +79,14 @@ jobs:
           # identik (2.7.0 / 20700), updater in-app tidak menawarkan apa pun dan user tidak bisa
           # membedakan APK lama dari yang baru.
           RUN=${{ github.run_number }}
-          CODE=$(( BASE * 1000 + (RUN % 1000) ))
-          echo "versi: $V (code $CODE) dari tag $TAG"
+          CODE=$(( BASE * 1000 + RUN ))
+          # Nomor build ikut di versionName supaya tiap update terlihat naik (2.7.0.24). Tanpa ini
+          # semua build pada tag yang sama identik, cermin rilis semver tetap v2.7.0, dan pembanding
+          # isNewerRelease selalu false -> banner pembaruan tidak pernah muncul.
+          VNAME="$V.$RUN"
+          echo "versi: $VNAME (code $CODE) dari tag $TAG + build $RUN"
           {
-            echo "VERSION_NAME=$V"
+            echo "VERSION_NAME=$VNAME"
             echo "VERSION_CODE=$CODE"
             echo "UPDATE_REPO=HiuraKiyowoo/fuwastream-build"
           } >> "$GITHUB_ENV"
