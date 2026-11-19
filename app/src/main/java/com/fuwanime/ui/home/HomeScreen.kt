@@ -318,7 +318,10 @@ private fun HomeScreen(
                         stringResource(R.string.browse_home_hot),
                         subtitle = stringResource(R.string.browse_home_hot_subtitle),
                     ) {
+                        // Two posters per title: the 16:9 cover row on top, the 2:3 portrait row below.
                         WideCardRow(feed.hot) { onAnimeClick(it, "home-hot") }
+                        Spacer(Modifier.height(14.dp))
+                        PosterRow(feed.hot, false, { onAnimeClick(it, "home-hot-poster") }, origin = "home-hot-poster")
                     }
                 }
             }
