@@ -4,19 +4,28 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -28,34 +37,38 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.fuwanime.R
-import com.fuwanime.ui.components.ListCardShape
-import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
 
 /**
- * In-app floating player. Renders the SAME ExoPlayer the player screen uses in a second [PlayerView], so
- * leaving the player screen keeps the stream running (no re-buffer, no pause). Drag to move, tap to reopen
- * the full player, X to stop. The drag consumes the pointer, so it never triggers the tab swipe underneath.
+ * YouTube-style mini player: a compact bar above the tab bar. Video on the left, anime title with the
+ * episode label beside it, play/pause + close on the right, hairline progress bar underneath.
+ *
+ * Renders the SAME ExoPlayer the full screen uses, so minimising never stops or re-buffers the stream.
+ * Tapping the bar reopens the player; the buttons consume their own clicks so they never expand it.
  */
 @Composable
 fun MiniPlayerOverlay(
     player: ExoPlayer?,
+    animeTitle: String,
+    episodeLabel: String,
     bottomPadding: Dp,
     onExpand: () -> Unit,
     onClose: () -> Unit,
 ) {
     if (player == null) return
+
     var playing by remember(player) { mutableStateOf(player.isPlaying) }
+    var progress by remember(player) { mutableStateOf(0f) }
     DisposableEffect(player) {
         val listener = object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -65,70 +78,106 @@ fun MiniPlayerOverlay(
         player.addListener(listener)
         onDispose { player.removeListener(listener) }
     }
-
-    BoxWithConstraints(
-        Modifier
-            .fillMaxSize()
-            .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = bottomPadding + 12.dp),
-    ) {
-        val density = LocalDensity.current
-        val cardW = with(density) { 212.dp.toPx() }
-        val cardH = cardW * 9f / 16f
-        val maxX = (constraints.maxWidth - cardW).coerceAtLeast(0f)
-        val maxY = (constraints.maxHeight - cardH).coerceAtLeast(0f)
-        // Starts bottom-end; clamped again whenever the available area changes (rotation, rail, insets).
-        var x by remember { mutableStateOf(maxX) }
-        var y by remember { mutableStateOf(maxY) }
-        LaunchedEffect(maxX, maxY) {
-            x = x.coerceIn(0f, maxX)
-            y = y.coerceIn(0f, maxY)
+    // The bar owns no ViewModel, so it polls the player it was handed (same cadence as the full screen).
+    LaunchedEffect(player) {
+        while (true) {
+            val total = player.duration
+            progress = if (total > 0) {
+                (player.currentPosition.toFloat() / total.toFloat()).coerceIn(0f, 1f)
+            } else {
+                0f
+            }
+            delay(250)
         }
+    }
 
-        androidx.compose.foundation.layout.Box(
-            Modifier
-                .offset { IntOffset(x.roundToInt(), y.roundToInt()) }
-                .width(212.dp)
-                .aspectRatio(16f / 9f)
-                .clip(ListCardShape)
-                .background(Color.Black)
-                .clickable { onExpand() }
-                .pointerInput(maxX, maxY) {
-                    detectDragGestures { change, drag ->
-                        change.consume()
-                        x = (x + drag.x).coerceIn(0f, maxX)
-                        y = (y + drag.y).coerceIn(0f, maxY)
-                    }
-                },
-        ) {
-            AndroidView(
-                factory = { ctx ->
-                    PlayerView(ctx).apply {
-                        useController = false
-                        setShutterBackgroundColor(android.graphics.Color.BLACK)
-                        layoutParams = FrameLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                        )
-                        this.player = player
-                    }
-                },
-                update = { it.player = player },
-                onRelease = { it.player = null },
-                modifier = Modifier.fillMaxSize(),
-            )
-            IconButton(onClick = onClose, modifier = Modifier.align(Alignment.TopEnd)) {
-                Icon(Icons.Rounded.Close, stringResource(R.string.watch_close), tint = Color.White)
-            }
-            IconButton(
-                onClick = { if (playing) player.pause() else player.play() },
-                modifier = Modifier.align(Alignment.Center),
+    val barShape = RoundedCornerShape(12.dp)
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 8.dp, end = 8.dp, bottom = bottomPadding + 8.dp),
+        shape = barShape,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shadowElevation = 8.dp,
+        tonalElevation = 3.dp,
+    ) {
+        Column(Modifier.clip(barShape).clickable { onExpand() }) {
+            Row(
+                Modifier.fillMaxWidth().height(64.dp).padding(end = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    if (playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                    stringResource(if (playing) R.string.watch_pause else R.string.watch_play),
-                    tint = Color.White,
-                )
+                Box(
+                    Modifier
+                        .padding(start = 6.dp)
+                        .width(100.dp)
+                        .aspectRatio(16f / 9f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.Black),
+                ) {
+                    AndroidView(
+                        factory = { ctx ->
+                            PlayerView(ctx).apply {
+                                useController = false
+                                setShutterBackgroundColor(android.graphics.Color.BLACK)
+                                layoutParams = FrameLayout.LayoutParams(
+                                    ViewGroup.LayoutParams.MATCH_PARENT,
+                                    ViewGroup.LayoutParams.MATCH_PARENT,
+                                )
+                                this.player = player
+                            }
+                        },
+                        update = { it.player = player },
+                        onRelease = { it.player = null },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        animeTitle,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (episodeLabel.isNotBlank()) {
+                        Text(
+                            episodeLabel,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+                Spacer(Modifier.width(4.dp))
+                IconButton(
+                    onClick = { if (playing) player.pause() else player.play() },
+                    modifier = Modifier.size(40.dp),
+                ) {
+                    Icon(
+                        if (playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                        stringResource(if (playing) R.string.watch_pause else R.string.watch_play),
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+                IconButton(onClick = onClose, modifier = Modifier.size(40.dp)) {
+                    Icon(
+                        Icons.Rounded.Close,
+                        stringResource(R.string.watch_close),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier.fillMaxWidth().height(3.dp),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                strokeCap = StrokeCap.Butt,
+                drawStopIndicator = {},
+                gapSize = 0.dp,
+            )
         }
     }
 }

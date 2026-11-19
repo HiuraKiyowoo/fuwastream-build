@@ -391,7 +391,8 @@ fun PlayerRoute(
             if (keepAlive) {
                 mini.show(
                     Routes.player(anime!!.id, ep.id, ep.number, ep.thumbnail),
-                    listOf(anime.title, ep.title).filter { it.isNotBlank() }.joinToString(" · "),
+                    anime.title,
+                    if (ep.number.isNotBlank()) res.getString(R.string.watch_mini_episode, ep.number) else ep.title,
                     ep.id,
                 )
             } else {

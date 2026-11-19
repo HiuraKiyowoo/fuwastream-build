@@ -14,14 +14,17 @@ class MiniPlayer {
     /** Player route to reopen when the mini window is tapped. */
     var route by mutableStateOf<String?>(null)
         private set
-    var title by mutableStateOf("")
+    var animeTitle by mutableStateOf("")
+        private set
+    var episodeLabel by mutableStateOf("")
         private set
     var episodeKey by mutableStateOf<String?>(null)
         private set
 
-    fun show(route: String, title: String, episodeKey: String) {
+    fun show(route: String, animeTitle: String, episodeLabel: String, episodeKey: String) {
         this.route = route
-        this.title = title
+        this.animeTitle = animeTitle
+        this.episodeLabel = episodeLabel
         this.episodeKey = episodeKey
         active = true
     }

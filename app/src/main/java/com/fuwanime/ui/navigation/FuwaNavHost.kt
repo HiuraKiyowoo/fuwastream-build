@@ -493,9 +493,18 @@ fun FuwaNavHost(initialTarget: LaunchTarget? = null, onInitialTargetConsumed: ()
                 OfflinePill(netState, reduceMotion, Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp + navPad))
             }
             // In-app floating player: back from the player screen keeps the stream running in this window.
-            if (mini.active && destination?.route != Routes.PLAYER) {
+            AnimatedVisibility(
+                visible = mini.active && destination?.route != Routes.PLAYER,
+                enter = slideInVertically(tween(Motion.Medium, easing = Motion.EmphasizedDecelerate)) { it } +
+                    fadeIn(tween(Motion.Short)),
+                exit = slideOutVertically(tween(Motion.Medium, easing = Motion.EmphasizedAccelerate)) { it } +
+                    fadeOut(tween(Motion.Short)),
+                modifier = Modifier.align(Alignment.BottomCenter),
+            ) {
                 MiniPlayerOverlay(
                     player = container.playbackHolder.player,
+                    animeTitle = mini.animeTitle,
+                    episodeLabel = mini.episodeLabel,
                     bottomPadding = navPad,
                     onExpand = { mini.route?.let { nav.navigate(it) } },
                     onClose = { container.playbackHolder.stop(); mini.hide() },

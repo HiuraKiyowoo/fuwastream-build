@@ -148,4 +148,5 @@
     <plurals name="watch_sleep_minutes">
         <item quantity="other">%1$d minit</item>
     </plurals>
+    <string name="watch_mini_episode">Episod %1$s</string>
 </resources>
