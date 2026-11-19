@@ -353,19 +353,13 @@ private fun HomeScreen(
                 }
             }
 
-            if (feed.loading || feed.fresh.isNotEmpty()) {
-                item(key = "new") {
+            if (feed.forYou.isNotEmpty()) {
+                item(key = "forYou") {
                     Section(
-                        stringResource(R.string.browse_home_new),
-                        subtitle = stringResource(R.string.browse_home_new_subtitle),
+                        stringResource(R.string.browse_home_for_you),
+                        subtitle = stringResource(R.string.browse_home_for_you_subtitle),
                     ) {
-                        val newRes = LocalContext.current.resources
-                        PosterRow(feed.fresh, feed.loading, { onAnimeClick(it, "home-new") }, origin = "home-new", caption = { a ->
-                            listOf(typeLabel(newRes, a.type), a.year)
-                                .filter { it.isNotBlank() }
-                                .joinToString(" · ")
-                                .ifBlank { null }
-                        })
+                        WideCardRow(feed.forYou) { onAnimeClick(it, "home-for-you") }
                     }
                 }
             }

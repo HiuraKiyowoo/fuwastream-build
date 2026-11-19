@@ -4,6 +4,8 @@ import com.fuwanime.util.UiText
 import com.fuwanime.data.backup.BackupRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fuwanime.data.rankSimilar
+import kotlinx.coroutines.flow.collectLatest
 import com.fuwanime.data.Anime
 import com.fuwanime.data.AnimeRepository
 import com.fuwanime.data.LatestRelease
@@ -49,6 +51,8 @@ data class HomeFeed(
     val hot: List<Anime> = emptyList(),
     /** Titles newly added to the catalogue (not new episodes of existing ones). */
     val fresh: List<Anime> = emptyList(),
+    /** Recommendations from the collection's genres; empty until there is something to learn from. */
+    val forYou: List<Anime> = emptyList(),
     val loading: Boolean = true,
     /** Pull-to-refresh in progress (its own indicator). */
     val refreshing: Boolean = false,
@@ -250,6 +254,24 @@ class HomeViewModel(
         // Capture the previous visit before overwriting it; this drives the update summary.
         lastHomeOpen.value = settingsStore.lastHomeOpen()
         settingsStore.markHomeOpened()
+    }
+
+    init {
+        // Rekomendasi: seed genres from the collection, rank the similar pool, drop what is already saved.
+        viewModelScope.launch {
+            library.favoriteList.collectLatest { favs ->
+                val saved = favs.mapTo(HashSet()) { it.animeId }
+                val seed = favs.firstNotNullOfOrNull { f ->
+                    anime.cachedAnime(f.animeId)?.takeIf { it.genres.isNotEmpty() }
+                }
+                if (seed == null) {
+                    feed.update { it.copy(forYou = emptyList()) }
+                    return@collectLatest
+                }
+                val pool = anime.similarCandidates(seed).getOrNull().orEmpty()
+                feed.update { it.copy(forYou = rankSimilar(seed, pool, exclude = saved, limit = 10)) }
+            }
+        }
     }
 
     init {

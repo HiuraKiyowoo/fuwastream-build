@@ -59,6 +59,6 @@
     <string name="source_kuramanime">Kuramanime</string>
     <string name="browse_home_hot">Sedang Hangat</string>
     <string name="browse_home_hot_subtitle">Pilihan yang lagi ramai ditonton</string>
-    <string name="browse_home_new">Judul Baru</string>
-    <string name="browse_home_new_subtitle">Baru masuk katalog</string>
+    <string name="browse_home_for_you">Rekomendasi</string>
+    <string name="browse_home_for_you_subtitle">Berdasarkan koleksi dan tontonanmu</string>
 </resources>
