@@ -493,7 +493,8 @@ fun FuwaNavHost(initialTarget: LaunchTarget? = null, onInitialTargetConsumed: ()
                 OfflinePill(netState, reduceMotion, Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp + navPad))
             }
             // In-app floating player: back from the player screen keeps the stream running in this window.
-            AnimatedVisibility(
+            // Unscoped overload: inside the Row, the RowScope one would be picked otherwise.
+            androidx.compose.animation.AnimatedVisibility(
                 visible = mini.active && destination?.route != Routes.PLAYER,
                 enter = slideInVertically(tween(Motion.Medium, easing = Motion.EmphasizedDecelerate)) { it } +
                     fadeIn(tween(Motion.Short)),
