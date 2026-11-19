@@ -1,6 +1,8 @@
 package com.fuwanime.ui.home
 
 import com.fuwanime.R
+import com.fuwanime.ui.components.LiveDot
+import com.fuwanime.ui.components.ListCardShape
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
 import com.fuwanime.util.typeLabel
@@ -318,10 +320,7 @@ private fun HomeScreen(
                         stringResource(R.string.browse_home_hot),
                         subtitle = stringResource(R.string.browse_home_hot_subtitle),
                     ) {
-                        // Two posters per title: the 16:9 cover row on top, the 2:3 portrait row below.
                         WideCardRow(feed.hot) { onAnimeClick(it, "home-hot") }
-                        Spacer(Modifier.height(14.dp))
-                        PosterRow(feed.hot, false, { onAnimeClick(it, "home-hot-poster") }, origin = "home-hot-poster")
                     }
                 }
             }
@@ -664,38 +663,88 @@ private fun AmbientBackdrop(url: String, modifier: Modifier = Modifier) {
 }
 
 /**
- * Landscape row: the backend ships a second poster per title (`image_cover`, 16:9) next to the 2:3
- * portrait one. Sections using this render the cover; poster rows keep the portrait asset.
+ * Trending card: the 16:9 cover as a banner with the title's 2:3 portrait poster inset at its
+ * bottom-left, then type/year and the title beside the poster. Both posters the backend ships
+ * (`image_cover` + `image_poster`) are used on one card, so no second row is needed.
  */
 @Composable
 private fun WideCardRow(items: List<Anime>, onClick: (Anime) -> Unit) {
+    val res = LocalContext.current.resources
     LazyRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         items(items, key = { it.id }) { anime ->
-            Box(
+            Column(
                 Modifier
-                    .width(272.dp)
-                    .aspectRatio(16f / 9f)
-                    .clip(MaterialTheme.shapes.medium)
+                    .width(300.dp)
                     .clickable { onClick(anime) }
                     .semantics(mergeDescendants = true) { contentDescription = anime.title },
             ) {
-                NetImage(anime.cover.ifBlank { anime.poster }, Modifier.fillMaxSize(), null)
-                Box(
-                    Modifier.fillMaxSize().background(
-                        Brush.verticalGradient(0.45f to Color.Transparent, 1f to ImageScrim.copy(alpha = 0.82f)),
-                    ),
-                )
-                Text(
-                    anime.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = Color.White,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.align(Alignment.BottomStart).padding(10.dp),
-                )
+                Box(Modifier.fillMaxWidth().aspectRatio(16f / 9f).clip(ListCardShape)) {
+                    NetImage(anime.cover.ifBlank { anime.poster }, Modifier.fillMaxSize(), null)
+                    Box(
+                        Modifier.fillMaxSize().background(
+                            Brush.verticalGradient(0.55f to Color.Transparent, 1f to ImageScrim.copy(alpha = 0.55f)),
+                        ),
+                    )
+                    if (anime.isOngoing) {
+                        Row(
+                            Modifier
+                                .align(Alignment.TopStart)
+                                .padding(7.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(ImageScrim.copy(alpha = 0.78f))
+                                .padding(start = 6.dp, end = 7.dp, top = 3.dp, bottom = 3.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            LiveDot()
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                stringResource(R.string.common_status_airing),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                            )
+                        }
+                    }
+                }
+                Row(Modifier.fillMaxWidth()) {
+                    // Inset poster: rides up over the banner's bottom edge, portrait asset kept at 2:3.
+                    NetImage(
+                        anime.poster,
+                        Modifier
+                            .padding(start = 8.dp)
+                            .offset(y = (-20).dp)
+                            .width(68.dp)
+                            .aspectRatio(2f / 3f)
+                            .clip(ListCardShape),
+                        null,
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.padding(top = 6.dp, end = 4.dp)) {
+                        val meta = listOf(typeLabel(res, anime.type), anime.year)
+                            .filter { it.isNotBlank() }
+                            .joinToString(" · ")
+                        if (meta.isNotBlank()) {
+                            Text(
+                                meta,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        Text(
+                            anime.title,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
             }
         }
     }
