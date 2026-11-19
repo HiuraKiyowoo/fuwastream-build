@@ -141,6 +141,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.C
@@ -409,6 +410,13 @@ fun PlayerRoute(
             player.stop()
             return@LaunchedEffect
         }
+        // Returning from the mini window: this exact source is already loaded and playing, so re-setting
+        // the media item would seek back to the saved position and restart the stream. Keep it untouched.
+        val loadedUri = player.currentMediaItem?.localConfiguration?.uri?.toString()
+        if (loadedUri == source.url && player.playbackState != Player.STATE_IDLE) {
+            playback.firstFrame = true
+            return@LaunchedEffect
+        }
         player.setMediaItem(mediaItem(source.url, nowPlaying(res, state.episode, state.anime)), state.startPositionMs.coerceAtLeast(0))
         player.prepare()
         player.playWhenReady = !sleepExpired
@@ -453,8 +461,14 @@ fun PlayerRoute(
         if (sleep == SleepOption.END_OF_EPISODE) sleep = SleepOption.OFF
     }
 
+    // Each nav entry owns a lifecycle, so leaving the player screen fires ON_STOP while the app is still
+    // in front. Pausing there killed the mini player's stream; only pause when the ACTIVITY truly stopped.
+    val activityLifecycle = remember(context) { (context as? LifecycleOwner)?.lifecycle }
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
         vm.onPlayerExit(player.currentPosition, player.duration)
+        if (activityLifecycle?.currentState?.isAtLeast(Lifecycle.State.STARTED) == true) {
+            return@LifecycleEventEffect
+        }
         // Closing the PiP window stops the activity while it still reports PiP mode.
         val wasInPip = inPip || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && activity?.isInPictureInPictureMode == true)
         val screenOn = (context.getSystemService(Context.POWER_SERVICE) as PowerManager).isInteractive
