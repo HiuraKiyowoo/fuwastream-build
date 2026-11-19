@@ -383,7 +383,7 @@ fun PlayerRoute(
             // holder.player !== player means another episode already took over, so this one must go.
             val ep = vm.state.value.episode
             val anime = vm.state.value.anime
-            val keepAlive = player.playWhenReady &&
+            val keepAlive =
                 player.playbackState != Player.STATE_ENDED &&
                 player.playbackState != Player.STATE_IDLE &&
                 holder.player === player && anime != null

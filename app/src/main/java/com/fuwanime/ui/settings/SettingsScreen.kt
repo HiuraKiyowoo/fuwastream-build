@@ -584,7 +584,7 @@ fun SettingsRoute(onBack: () -> Unit, onOpenLegal: (String) -> Unit, onOpenProfi
 
             item { Group(stringResource(R.string.mine_group_about)) }
             item {
-                ActionRow(Icons.Rounded.Info, stringResource(R.string.mine_version, BuildConfig.VERSION_NAME), stringResource(R.string.mine_version_desc), onClick = null)
+                ActionRow(Icons.Rounded.Info, stringResource(R.string.mine_version, "${BuildConfig.VERSION_NAME} · ${BuildConfig.VERSION_CODE}"), stringResource(R.string.mine_version_desc), onClick = null)
             }
             item {
                 ActionRow(Icons.Rounded.AutoAwesome, stringResource(R.string.mine_third_party), stringResource(R.string.mine_third_party_desc), onClick = null)

@@ -493,7 +493,7 @@ fun FuwaNavHost(initialTarget: LaunchTarget? = null, onInitialTargetConsumed: ()
                 OfflinePill(netState, reduceMotion, Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp + navPad))
             }
             // In-app floating player: back from the player screen keeps the stream running in this window.
-            if (mini.active && currentTab != null) {
+            if (mini.active && destination?.route != Routes.PLAYER) {
                 MiniPlayerOverlay(
                     player = container.playbackHolder.player,
                     bottomPadding = navPad,

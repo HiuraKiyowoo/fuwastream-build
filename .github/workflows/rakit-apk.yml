@@ -74,7 +74,12 @@ jobs:
           [ -n "$TAG" ] || TAG=$(git describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null || echo v0.0.0)
           V="${TAG#v}"
           IFS=. read -r MA MI PA <<< "$V"
-          CODE=$(( ${MA:-0} * 10000 + ${MI:-0} * 100 + ${PA:-0} ))
+          BASE=$(( ${MA:-0} * 10000 + ${MI:-0} * 100 + ${PA:-0} ))
+          # Tiap build harus punya code berbeda dan naik: tanpa ini semua build pada tag yang sama
+          # identik (2.7.0 / 20700), updater in-app tidak menawarkan apa pun dan user tidak bisa
+          # membedakan APK lama dari yang baru.
+          RUN=${{ github.run_number }}
+          CODE=$(( BASE * 1000 + (RUN % 1000) ))
           echo "versi: $V (code $CODE) dari tag $TAG"
           {
             echo "VERSION_NAME=$V"
