@@ -4,8 +4,9 @@ import com.fuwanime.util.UiText
 import com.fuwanime.data.backup.BackupRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.fuwanime.data.rankSimilar
 import kotlinx.coroutines.flow.collectLatest
+import com.fuwanime.data.pickForYou
+import com.fuwanime.data.tasteWeights
 import com.fuwanime.data.Anime
 import com.fuwanime.data.AnimeRepository
 import com.fuwanime.data.LatestRelease
@@ -257,19 +258,29 @@ class HomeViewModel(
     }
 
     init {
-        // Rekomendasi: seed genres from the collection, rank the similar pool, drop what is already saved.
+        // Rekomendasi: taste from favourites + watch history, personal picks first, general picks always fill
+        // the row so a brand-new user still sees something. Metadata is fetched from the repository when the
+        // cache does not have it, and the row recomputes whenever the collection or history changes.
         viewModelScope.launch {
-            library.favoriteList.collectLatest { favs ->
-                val saved = favs.mapTo(HashSet()) { it.animeId }
-                val seed = favs.firstNotNullOfOrNull { f ->
-                    anime.cachedAnime(f.animeId)?.takeIf { it.genres.isNotEmpty() }
+            // Only the general source lists, so writing forYou back into feed cannot retrigger this loop.
+            val generalPool = feed.map { Triple(it.popular, it.hot, it.thisSeason) }.distinctUntilChanged()
+            combine(library.favoriteList, library.allHistory, generalPool) { favs, hist, general ->
+                Triple(favs, hist, general)
+            }.collectLatest { (favs, hist, general) ->
+                val recentIds = hist.sortedByDescending { it.updatedAt }.map { it.animeId }.distinct().take(4)
+                val watched = recentIds.mapNotNull { id ->
+                    anime.cachedAnime(id) ?: anime.detail(id).getOrNull()?.also { anime.prime(it) }
                 }
-                if (seed == null) {
-                    feed.update { it.copy(forYou = emptyList()) }
-                    return@collectLatest
-                }
-                val pool = anime.similarCandidates(seed).getOrNull().orEmpty()
-                feed.update { it.copy(forYou = rankSimilar(seed, pool, exclude = saved, limit = 10)) }
+                val favGenres = favs.map { it.genres.split(',').map(String::trim).filter(String::isNotEmpty) }
+                val taste = tasteWeights(favGenres, watched.map { it.genres })
+                val exclude = favs.mapTo(HashSet()) { it.animeId }.apply { addAll(recentIds) }
+                val seeds = (watched + favs.mapNotNull { anime.cachedAnime(it.animeId) })
+                    .distinctBy { it.id }
+                    .take(2)
+                val personal = seeds.flatMap { anime.similarCandidates(it).getOrNull().orEmpty() }
+                val (popular, hot, season) = general
+                val generalList = popular + hot + season + feed.value.latest.map { it.anime }
+                feed.update { it.copy(forYou = pickForYou(personal, generalList, taste, exclude)) }
             }
         }
     }
