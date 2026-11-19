@@ -1,5 +1,7 @@
 package com.fuwanime.ui.navigation
 
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.material.icons.automirrored.rounded.MenuBook
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import com.fuwanime.ui.manga.MangaTabScreen
@@ -303,9 +305,29 @@ fun FuwaNavHost(initialTarget: LaunchTarget? = null, onInitialTargetConsumed: ()
         }
         val systemNav = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
         val navPad = navContentPadding(rail, currentTab != null, barHeight.value, systemNav.value).dp
+        // Swipe left/right walks the tab bar. Horizontally scrollable children (poster carousels, pagers)
+        // consume the drag before this parent sees it, so a carousel swipe never changes the tab.
+        val swipeMin = with(LocalDensity.current) { 96.dp.toPx() }
+        val swipeTabs = if (currentTab == null) Modifier else Modifier.pointerInput(currentTab) {
+            var total = 0f
+            detectHorizontalDragGestures(
+                onDragStart = { total = 0f },
+                onDragCancel = { total = 0f },
+                onHorizontalDrag = { change, amount -> change.consume(); total += amount },
+                onDragEnd = {
+                    val i = Tab.entries.indexOf(currentTab)
+                    val next = when {
+                        total <= -swipeMin && i < Tab.entries.lastIndex -> Tab.entries[i + 1]
+                        total >= swipeMin && i > 0 -> Tab.entries[i - 1]
+                        else -> null
+                    }
+                    if (next != null) onTab(next)
+                },
+            )
+        }
         Box(Modifier.weight(1f).fillMaxHeight()) {
           CompositionLocalProvider(LocalNavBarPadding provides navPad) {
-            Box(Modifier.fillMaxSize().hazeSource(hazeState)) {
+            Box(Modifier.fillMaxSize().hazeSource(hazeState).then(swipeTabs)) {
             SharedTransitionLayout {
                 CompositionLocalProvider(LocalSharedScope provides this, LocalReduceMotion provides reduceMotion) {
                     NavHost(
