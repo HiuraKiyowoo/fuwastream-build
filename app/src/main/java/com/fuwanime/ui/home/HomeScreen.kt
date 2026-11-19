@@ -314,17 +314,6 @@ private fun HomeScreen(
                 }
             }
 
-            if (feed.hot.isNotEmpty()) {
-                item(key = "hot") {
-                    Section(
-                        stringResource(R.string.browse_home_hot),
-                        subtitle = stringResource(R.string.browse_home_hot_subtitle),
-                    ) {
-                        WideCardRow(feed.hot) { onAnimeClick(it, "home-hot") }
-                    }
-                }
-            }
-
             if (feed.loading || feed.latest.isNotEmpty()) {
                 item(key = "latest") {
                     Section(stringResource(R.string.browse_home_latest)) {
@@ -338,6 +327,17 @@ private fun HomeScreen(
                                     .ifBlank { null }
                             }
                         })
+                    }
+                }
+            }
+
+            if (feed.hot.isNotEmpty()) {
+                item(key = "hot") {
+                    Section(
+                        stringResource(R.string.browse_home_hot),
+                        subtitle = stringResource(R.string.browse_home_hot_subtitle),
+                    ) {
+                        WideCardRow(feed.hot) { onAnimeClick(it, "home-hot") }
                     }
                 }
             }
@@ -709,20 +709,21 @@ private fun WideCardRow(items: List<Anime>, onClick: (Anime) -> Unit) {
                         }
                     }
                 }
-                Row(Modifier.fillMaxWidth()) {
-                    // Inset poster: rides up over the banner's bottom edge, portrait asset kept at 2:3.
+                // Fixed row height: the 126.dp poster is centred on the banner's bottom edge (half in,
+                // half out) via offset, which does not change layout size, so the row stays compact.
+                Row(Modifier.fillMaxWidth().height(78.dp)) {
                     NetImage(
                         anime.poster,
                         Modifier
-                            .padding(start = 8.dp)
-                            .offset(y = (-20).dp)
-                            .width(68.dp)
+                            .padding(start = 10.dp)
+                            .offset(y = (-63).dp)
+                            .width(84.dp)
                             .aspectRatio(2f / 3f)
                             .clip(ListCardShape),
                         null,
                     )
-                    Spacer(Modifier.width(10.dp))
-                    Column(Modifier.padding(top = 6.dp, end = 4.dp)) {
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.padding(top = 8.dp, end = 4.dp)) {
                         val meta = listOf(typeLabel(res, anime.type), anime.year)
                             .filter { it.isNotBlank() }
                             .joinToString(" · ")
