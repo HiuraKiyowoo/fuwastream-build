@@ -61,4 +61,6 @@
     <string name="browse_home_hot_subtitle">Pilihan yang lagi ramai ditonton</string>
     <string name="browse_home_new">Judul Baru</string>
     <string name="browse_home_new_subtitle">Baru masuk katalog</string>
+    <string name="browse_home_for_you">Untuk Kamu</string>
+    <string name="browse_home_for_you_subtitle">Berdasarkan koleksi dan tontonanmu</string>
 </resources>
