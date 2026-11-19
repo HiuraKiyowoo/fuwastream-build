@@ -42,7 +42,7 @@ object LegalText {
 
     const val DEVELOPER_NAME = "Kahoon Community (YuzakiNetwork)"
     const val DEVELOPER_EMAIL = "fuwanimereal@gmail.com"
-    const val DEVELOPER_WEB = "https://github.com/fuwanime/fuwastream"
+    const val DEVELOPER_WEB = "https://github.com/HiuraKiyowoo/fuwastream-build"
     const val COLLABORATOR_NAME = "Andra"
     const val COLLABORATOR_EMAIL = "andrahijati@gmail.com"
 
