@@ -31,6 +31,21 @@ class PlaybackHolder(private val app: Application, private val videoHttpClient: 
     internal var service: PlaybackService? = null
     private var controller: ListenableFuture<MediaController>? = null
 
+    /** Episode the live player belongs to, so returning from the mini window reuses it instead of re-buffering. */
+    private var currentKey: String? = null
+
+    /** Reuses the live player when it already plays [key] (mini window -> full screen); otherwise builds a new one. */
+    fun acquireOrReuse(key: String): ExoPlayer {
+        val live = player
+        if (live != null && currentKey == key) return live
+        val p = acquire()
+        currentKey = key
+        return p
+    }
+
+    /** Stops playback and tears the session down (mini window closed). */
+    fun stop() = releaseCurrent()
+
     fun acquire(): ExoPlayer {
         releaseCurrent()
         val p = buildPlayer()
@@ -48,6 +63,7 @@ class PlaybackHolder(private val app: Application, private val videoHttpClient: 
     }
 
     private fun releaseCurrent() {
+        currentKey = null
         controller?.let { MediaController.releaseFuture(it) }
         controller = null
         // Release the session first: otherwise stopping the player makes Media3 re-post the notification with

@@ -1,5 +1,6 @@
 package com.fuwanime.ui.navigation
 
+import com.fuwanime.ui.player.MiniPlayerOverlay
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.material.icons.automirrored.rounded.MenuBook
@@ -221,6 +222,7 @@ fun FuwaNavHost(initialTarget: LaunchTarget? = null, onInitialTargetConsumed: ()
     val currentTab = Tab.entries.firstOrNull { tab -> destination?.hierarchy?.any { it.route == tab.route } == true }
 
     val container = (LocalContext.current.applicationContext as FuwaApp).container
+    val mini = container.miniPlayer
     val animeRepository = container.animeRepository
     val netState by container.networkStatus.state.collectAsStateWithLifecycle()
     val openAnime: (Anime, String) -> Unit = { anime, from ->
@@ -489,6 +491,15 @@ fun FuwaNavHost(initialTarget: LaunchTarget? = null, onInitialTargetConsumed: ()
             // Floats over the tab content just above the bar, so showing it never shifts the layout.
             if (currentTab != null) {
                 OfflinePill(netState, reduceMotion, Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp + navPad))
+            }
+            // In-app floating player: back from the player screen keeps the stream running in this window.
+            if (mini.active && currentTab != null) {
+                MiniPlayerOverlay(
+                    player = container.playbackHolder.player,
+                    bottomPadding = navPad,
+                    onExpand = { mini.route?.let { nav.navigate(it) } },
+                    onClose = { container.playbackHolder.stop(); mini.hide() },
+                )
             }
           }
             if (!rail) {

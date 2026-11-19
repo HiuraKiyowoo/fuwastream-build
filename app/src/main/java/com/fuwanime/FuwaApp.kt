@@ -120,6 +120,7 @@ class AppContainer(private val app: Application) {
     val appInstaller by lazy { AppInstaller(app, videoHttpClient) }
 
     val playbackHolder by lazy { PlaybackHolder(app, videoHttpClient) }
+    val miniPlayer by lazy { com.fuwanime.playback.MiniPlayer() }
 
     /** AniList and AniSkip: no catalog User-Agent or JSON headers, and short timeouts so enrichment gives up fast. */
     val metaHttpClient: OkHttpClient by lazy {

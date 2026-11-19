@@ -162,6 +162,7 @@ import com.fuwanime.ui.motion.LocalNavScope
 import com.fuwanime.ui.motion.sharedKey
 import com.fuwanime.ui.motion.Motion
 import com.fuwanime.FuwaApp
+import com.fuwanime.ui.navigation.Routes
 import com.fuwanime.R
 import com.fuwanime.util.UiText
 import com.fuwanime.util.estimateDownloadBytes
@@ -302,7 +303,9 @@ fun PlayerRoute(
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val holder = remember(context) { (context.applicationContext as FuwaApp).container.playbackHolder }
-    val player = remember { holder.acquire() }
+    val mini = remember(context) { (context.applicationContext as FuwaApp).container.miniPlayer }
+    // Returning from the mini window reuses the live player: no re-buffer, playback never stops.
+    val player = remember { holder.acquireOrReuse(vm.state.episode.id) }
     val initialEpisodeId = remember { state.episode.id }
     // The nav-arg thumbnail, which is what flew in; the stream may report a different URL for the same image.
     val initialThumbnail = remember { state.episode.thumbnail }
@@ -376,7 +379,23 @@ fun PlayerRoute(
         onDispose {
             vm.saveProgress(player.currentPosition, player.duration)
             player.removeListener(listener)
-            holder.release(player)
+            // Left while still playing -> keep streaming in the in-app mini window instead of releasing.
+            // holder.player !== player means another episode already took over, so this one must go.
+            val ep = vm.state.episode
+            val anime = vm.state.anime
+            val keepAlive = player.playWhenReady &&
+                player.playbackState != Player.STATE_ENDED &&
+                player.playbackState != Player.STATE_IDLE &&
+                holder.player === player && anime != null
+            if (keepAlive) {
+                mini.show(
+                    Routes.player(anime!!.id, ep.id, ep.number, ep.thumbnail),
+                    listOf(anime.title, ep.title).filter { it.isNotBlank() }.joinToString(" · "),
+                    ep.id,
+                )
+            } else {
+                holder.release(player)
+            }
             view.keepScreenOn = false
         }
     }
